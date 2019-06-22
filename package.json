@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "app": "node main.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "ws": "latest",
+    "lowdb": "latest",
+    "express": "latest",
+    "socket.io": "latest",
+    "socket.io-client": "latest"
+  }
+}

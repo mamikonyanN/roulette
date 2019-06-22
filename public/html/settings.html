@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="form-group">
+        <label for="token">Токен DonationAlerts</label>
+        <input type="password" class="form-control" id="token" placeholder="Ваш токен">
+    </div>
+    <div class="form-group">
+        <label for="wishes">Желания (через пробел)</label>
+        <textarea class="form-control" id="wishes" rows="3"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="setData()">Сохранить изменения</button>
+</div>
+<script>
+    $.ajax({
+        type: "get",
+        url: "/data",
+        success: data => {
+            $('#token').val(data.token);
+            $('#wishes').val(data.wishes.join('\n'));
+        }
+    });
+    function setData() {
+        $.ajax({
+            type: "put",
+            url: "/data",
+            data: JSON.stringify({token: $('#token').val(), wishes: $('#wishes').val().split('\n')}),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: data => console.log(data),
+            failure: err => console.log(err)
+        });
+    }
+</script>
+</body>
+</html>

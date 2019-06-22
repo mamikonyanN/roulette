@@ -1,0 +1,14 @@
+{
+  "token": "Zab5uwCe8vvXmG06vI5Z",
+  "wishes": [
+    "Желание 1",
+    "Желание 2",
+    "Желание 3",
+    "Желание 4",
+    "Желание 5"
+  ],
+  "goal": 500,
+  "current": 200,
+  "expensiveWishes": [],
+  "expensiveGoal": 1000
+}
