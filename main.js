@@ -20,7 +20,8 @@ db.defaults({
 
     goal: 0,
     current: 0,
-    wishes: []
+    wishes: [],
+    angle: 0
 }).write();
 app.use(express.static("public"));
 
@@ -47,10 +48,38 @@ wss.on('connection', function connection(ws) {
             ws.send(JSON.stringify({
                 wishes: db.get('wishes'),
                 goal: db.get('goal'),
-                current: db.get('current')
+                current: db.get('current'),
+                angle: db.get('angle')
             }));
         if (message === "testSpin") {
-            let startAngle = 0;
+            let startAngle = JSON.parse(JSON.stringify(db.get('angle')));
+            let spinTimeTotal = Math.random() * 50 + 50 * 1000;
+            let spinAngleStart = Math.random() * 10 + 20;
+
+            let time = 0;
+            while (time < spinTimeTotal) {
+                time += 50;
+                let spinAngle = spinAngleStart - easeOut(time, 0, spinAngleStart, spinTimeTotal);
+                startAngle += (spinAngle * Math.PI / 180);
+            }
+            let wishes = JSON.parse(JSON.stringify(db.get('wishes')));
+            let arc = Math.PI / (wishes.length / 2);
+            let degrees = startAngle * 180 / Math.PI + 90;
+            let arcd = arc * 180 / Math.PI;
+            let index = Math.floor((360 - degrees % 360) / arcd);
+            console.log(wishes[index]);
+
+            ws.send(JSON.stringify({
+                spin: true,
+                user: "random_nick__",
+                spinAngle: spinAngleStart,
+                spinTime: spinTimeTotal,
+                angle: db.get('angle')
+            }));
+            db.set('angle', startAngle % 360).write();
+        }
+        if (message === "testSpin2") {
+            let startAngle = JSON.parse(JSON.stringify(db.get('angle')));
             let spinTimeTotal = Math.random() * 50 + 50 * 1000;
             let spinAngleStart = Math.random() * 10 + 20;
             let time = 0;
@@ -59,29 +88,26 @@ wss.on('connection', function connection(ws) {
                 let spinAngle = spinAngleStart - easeOut(time, 0, spinAngleStart, spinTimeTotal);
                 startAngle += (spinAngle * Math.PI / 180);
             }
-
-            let lenght = JSON.parse(JSON.stringify(db.get('wishes')));
-            let arc = Math.PI / (lenght.length / 2);
+            let wishes = JSON.parse(JSON.stringify(db.get('expensiveWishes')));
+            let arc = Math.PI / (wishes.length / 2);
             let degrees = startAngle * 180 / Math.PI + 90;
             let arcd = arc * 180 / Math.PI;
             let index = Math.floor((360 - degrees % 360) / arcd);
-
-            console.log(index);
+            console.log(wishes[index]);
 
             ws.send(JSON.stringify({
                 spin: true,
                 user: "random_nick__",
                 spinAngle: spinAngleStart,
-                spinTime: spinTimeTotal
+                spinTime: spinTimeTotal,
+                angle: db.get('angle'),
+                wishes: wishes,
+                gold: true
             }));
-
+            db.set('angle', startAngle % 360).write();
         }
     });
 });
-
-function answerGessing() {
-
-}
 
 function easeOut(t, b, c, d) {
     let ts = (t /= d) * t;

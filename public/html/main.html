@@ -77,8 +77,8 @@
     </style>
     <meta charset="UTF-8">
     <title>Roulette</title>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+    <script src="../js/jquery-3.4.1.min.js"></script>
+    <script src="../js/socket.io.js"></script>
 </head>
 <body style="background: #00ff00">
 <div class="status">
@@ -91,7 +91,7 @@
 </div>
 <div class="message">
 </div>
-<img src="../media/back.jpeg" id="back" hidden alt="">
+<img src="../media/back.jpeg" id="back" alt="" hidden>
 <script>
 
     let options = ["default"];
@@ -111,23 +111,30 @@
     socket.onmessage = function (event) {
         let data = JSON.parse(event.data);
 
-        if (data.wishes && data.wishes.length > 0) options = data.wishes;
+        exp = !!data.gold;
 
-        if (data.current) document.getElementById("current").innerText = data.current;
+        if (!!data.wishes && data.wishes.length > 0) options = data.wishes;
 
-        if (data.goal && data.current)
+        if (!!data.current) document.getElementById("current").innerText = data.current;
+
+        if (!!data.angle) startAngle = data.angle;
+
+        if (!!data.goal && !!data.current)
             document.getElementsByClassName("bar")[0].style.width = data.current * 100 / data.goal + "%";
 
-        if (data.spin){
+        if (!!data.spin) {
+            startAngle = data.angle;
             spinAngleStart = data.spinAngle;
             spinTimeTotal = data.spinTime;
             spin(data.username);
         }
 
-        if (data.e) console.log();
+        if (!!data.e) console.log(data.e);
     };
 
     let spinRemained = [];
+
+    let exp = false;
 
     let startAngle = 0;
     let spinTimeout = null;
@@ -150,7 +157,7 @@
             ctx = canvas.getContext("2d");
             ctx.clearRect(0, 0, 500, 500);
 
-            ctx.strokeStyle = "white";
+            ctx.strokeStyle = exp ? "gold" : "white";
             ctx.lineWidth = 3;
             ctx.font = 'bold 30px Monly Lite, Arial';
 
@@ -167,7 +174,7 @@
                 let angle = startAngle + i * arc;
 
                 ctx.fillStyle = ctx.createPattern(tempCanvas, 'no-repeat');
-                ctx.strokeStyle = "white";
+                ctx.strokeStyle = exp ? "gold" : "white";
                 // ctx.strokeStyle = "gold";
                 ctx.beginPath();
                 ctx.arc(250, 250, outsideRadius, angle, angle + arc, false);
@@ -176,7 +183,7 @@
                 ctx.stroke();
                 ctx.save();
 
-                ctx.fillStyle = "white";
+                ctx.fillStyle = exp ? "gold" : "white";
                 // ctx.fillStyle = "gold";
                 ctx.shadowOffsetX = 2;
                 ctx.shadowOffsetY = 2;
@@ -191,7 +198,7 @@
             }
 
             //Arrow
-            ctx.fillStyle = "white";
+            ctx.fillStyle = exp ? "gold" : "white";
             ctx.beginPath();
             ctx.moveTo(250 - 4, 250 - (outsideRadius + 5));
             ctx.lineTo(250 + 4, 250 - (outsideRadius + 5));

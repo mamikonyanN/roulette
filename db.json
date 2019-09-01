@@ -9,6 +9,10 @@
   ],
   "goal": 500,
   "current": 200,
-  "expensiveWishes": [],
-  "expensiveGoal": 1000
+  "expensiveWishes": [
+    "Оу май желание 1",
+    "Оу май желание 2"
+  ],
+  "expensiveGoal": 1000,
+  "angle": 63.04065780755707
 }
