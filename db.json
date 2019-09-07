@@ -1,18 +1,59 @@
 {
   "token": "Zab5uwCe8vvXmG06vI5Z",
-  "wishes": [
-    "Желание 1",
+  "actions": [
     "Желание 2",
     "Желание 3",
     "Желание 4",
-    "Желание 5"
+    "rer"
   ],
   "goal": 500,
   "current": 200,
-  "expensiveWishes": [
+  "royalActions": [
     "Оу май желание 1",
     "Оу май желание 2"
   ],
-  "expensiveGoal": 1000,
-  "angle": 63.04065780755707
+  "royalGoal": "1000",
+  "angle": 205.22092240985842,
+  "debtActions": [
+    {
+      "action": "Желание 4",
+      "author": "1",
+      "date": "2019-09-07T08:57:50.552Z"
+    },
+    {
+      "action": "Желание 2",
+      "author": "400",
+      "date": "2019-09-07T08:59:33.556Z"
+    },
+    {
+      "action": "Оу май желание 1",
+      "author": "random_nick__",
+      "date": "2019-09-07T08:59:57.432Z"
+    },
+    {
+      "action": "Желание 3",
+      "author": "400",
+      "date": "2019-09-07T09:07:00.166Z"
+    },
+    {
+      "action": "Оу май желание 2",
+      "author": "random_nick__",
+      "date": "2019-09-07T09:08:13.217Z"
+    },
+    {
+      "action": "Желание 4",
+      "author": "albisha",
+      "date": "2019-09-07T09:08:55.250Z"
+    },
+    {
+      "action": "Оу май желание 2",
+      "author": "albisha",
+      "date": "2019-09-07T09:09:07.230Z"
+    },
+    {
+      "action": "Желание 2",
+      "author": "albisha",
+      "date": "2019-09-07T09:09:12.150Z"
+    }
+  ]
 }

@@ -4,10 +4,11 @@
   },
   "license": "ISC",
   "dependencies": {
-    "ws": "latest",
-    "lowdb": "latest",
+    "body-parser": "latest",
     "express": "latest",
+    "lowdb": "latest",
     "socket.io": "latest",
-    "socket.io-client": "latest"
+    "socket.io-client": "latest",
+    "ws": "latest"
   }
 }

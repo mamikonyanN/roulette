@@ -1,45 +1,168 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--suppress HtmlUnknownTag, XmlUnboundNsPrefix, HtmlUnknownAttribute, CheckEmptyScriptTag, HtmlUnknownTarget -->
+<html lang="ru">
 <head>
+    <title>Настройки</title>
     <meta charset="UTF-8">
-    <title>Settings</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <link rel="shortcut icon" href="./media/icon.png">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@3.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
 </head>
 <body>
-<div class="container">
-    <div class="form-group">
-        <label for="token">Токен DonationAlerts</label>
-        <input type="password" class="form-control" id="token" placeholder="Ваш токен">
-    </div>
-    <div class="form-group">
-        <label for="wishes">Желания (через пробел)</label>
-        <textarea class="form-control" id="wishes" rows="3"></textarea>
-    </div>
-    <button class="btn btn-primary" onclick="setData()">Сохранить изменения</button>
+<div id="app">
+    <v-app>
+        <v-app-bar app>
+            <v-toolbar-title>Настройки</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn href="/settings" text>Настройки</v-btn>
+            <v-btn href="/wishList" text>Желания</v-btn>
+        </v-app-bar>
+        <v-content>
+            <v-container>
+                <span class="title">Токены и донаты</span>
+                <v-row>
+                    <v-col cols="12" sm="4">
+                        <v-text-field
+                                :append-icon="tokenShow ? 'visibility' : 'visibility_off'"
+                                :rules="[rules.required]"
+                                :type="tokenShow ? 'text' : 'password'"
+                                v-model="token"
+                                hint="Токен DonationAlerts"
+                                label="Токен"
+                                @click:append="tokenShow = !tokenShow"
+                        />
+                    </v-col>
+                    <v-col cols="12" sm="4">
+                        <v-text-field
+                                type="number"
+                                :rules="[rules.required]"
+                                v-model="goal"
+                                hint="Общий донатгол"
+                                label="Донатгол"
+                        />
+                    </v-col>
+                    <v-col cols="12" sm="4">
+                        <v-text-field
+                                type="number"
+                                :rules="[rules.required]"
+                                v-model="royalGoal"
+                                hint="Сумма доната для дорогих заданий"
+                                label="Дорогой донатгол"
+                        />
+                    </v-col>
+                </v-row>
+                <v-row>
+                    <v-col cols="12" class="text-right">
+                        <v-btn tile outlined @click="saveData()">Сохранить</v-btn>
+                    </v-col>
+                </v-row>
+                <v-divider></v-divider>
+                <span class="title">Задания</span>
+                <v-row>
+                    <v-col cols="12">
+                        <v-chip
+                                close
+                                v-for="(wish, index) in actions"
+                                @click:close="deleteWish(index)"
+                                :key="index"
+                                class="ma-1"
+                        >
+                            {{wish}}
+                        </v-chip>
+                    </v-col>
+                    <v-col cols="12" sm="4">
+                        <v-text-field v-model="newWish" label="Новое задание"/>
+                    </v-col>
+                    <v-col cols="12" sm="8">
+                        <v-btn tile outlined @click="addWish()">Добавить в список</v-btn>
+                        <v-btn tile outlined @click="saveActions()">Сохранить список</v-btn>
+                    </v-col>
+                </v-row>
+                <v-divider></v-divider>
+                <span class="title">Дорогие задания</span>
+                <v-row>
+                    <v-col cols="12">
+                        <v-chip
+                                close
+                                v-for="(wish, index) in royalActions"
+                                @click:close="deleteWish(index)"
+                                :key="index"
+                                class="ma-1"
+                        >
+                            {{wish}}
+                        </v-chip>
+                    </v-col>
+                    <v-col cols="12" sm="4">
+                        <v-text-field v-model="newRoyalWish" label="Новое дорогое задание"/>
+                    </v-col>
+                    <v-col cols="12" sm="8">
+                        <v-btn tile outlined @click="addWish()">Добавить в список дорогих</v-btn>
+                        <v-btn tile outlined @click="saveRoyalActions()">Сохранить список дорогих</v-btn>
+                    </v-col>
+                </v-row>
+                <v-snackbar v-model="snackbar" :timeout="1500" right color="success">Сохранено</v-snackbar>
+            </v-container>
+        </v-content>
+    </v-app>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
 <script>
-    $.ajax({
-        type: "get",
-        url: "/data",
-        success: data => {
-            $('#token').val(data.token);
-            $('#wishes').val(data.wishes.join('\n'));
+    new Vue({
+        el: '#app',
+        vuetify: new Vuetify({theme: {dark: true}}),
+        data: () => ({
+            token: "",
+            goal: 500,
+            actions: [],
+
+            royalGoal: 2500,
+            royalActions: [],
+
+            tokenShow: false,
+            snackbar: false,
+            newWish: "",
+            newRoyalWish: "",
+            rules: {required: value => !!value || 'Введи!!!'}
+        }),
+        mounted() {
+            axios.get('/data').then(response => {
+                this.token = response.data.token;
+                this.goal = response.data.goal;
+                this.royalGoal = response.data.royalGoal;
+                this.actions = response.data.actions;
+                this.royalActions = response.data.royalActions;
+            });
+        },
+        methods: {
+            deleteWish(index) {
+                this.actions.splice(index, 1)
+            },
+            addWish() {
+                if (!!this.newWish) {
+                    this.actions.push(this.newWish);
+                    this.newWish = "";
+                }
+            },
+            saveData() {
+                axios.post("/saveData", {token: this.token, goal: this.goal, royalGoal: this.royalGoal});
+                this.snackbar = true
+            },
+            saveActions() {
+                axios.post("/saveActions", this.actions);
+                this.snackbar = true
+            },
+            saveRoyalActions() {
+                axios.post("/saveRoyalActions", this.royalActions);
+                this.snackbar = true
+            }
         }
-    });
-    function setData() {
-        $.ajax({
-            type: "put",
-            url: "/data",
-            data: JSON.stringify({token: $('#token').val(), wishes: $('#wishes').val().split('\n')}),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: data => console.log(data),
-            failure: err => console.log(err)
-        });
-    }
+    })
 </script>
 </body>
 </html>

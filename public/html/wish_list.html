@@ -1,10 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--suppress HtmlUnknownTag, XmlUnboundNsPrefix, HtmlUnknownAttribute, CheckEmptyScriptTag, HtmlUnknownTarget -->
+<html lang="ru">
 <head>
+    <title>Желания</title>
     <meta charset="UTF-8">
-    <title>WishList</title>
+    <link rel="shortcut icon" href="./media/icon.png">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@3.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
 </head>
 <body>
+<div id="app">
+    <v-app>
+        <v-app-bar app>
+            <v-toolbar-title>Желания</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn href="/settings" text>Настройки</v-btn>
+            <v-btn href="/wishList" text>Желания</v-btn>
+        </v-app-bar>
+        <v-content>
+            <v-container>
+                <v-layout>
+                    <v-card class="mx-auto" max-width="400" tile>
+                        <v-list two-line flat subheader>
+                            <v-subheader>Задания</v-subheader>
+                            <v-list-item-group>
+                                <v-list-item v-for="(action, index) in debtActions" :key="index">
+                                    <v-list-item-content>
+                                        <v-list-item-title>{{action.action}}</v-list-item-title>
+                                        <v-list-item-subtitle>Автор: {{action.author}}</v-list-item-subtitle>
+                                        <v-list-item-subtitle>{{new Date(action.date).toLocaleString()}}</v-list-item-subtitle>
+                                    </v-list-item-content>
+                                    <v-list-item-action>
+                                        <v-btn icon @click="doneAction(index)">
+                                            <v-icon>clear</v-icon>
+                                        </v-btn>
+                                    </v-list-item-action>
+                                </v-list-item>
+                            </v-list-item-group>
+                        </v-list>
+                    </v-card>
+                </v-layout>
+            </v-container>
+        </v-content>
+    </v-app>
+</div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        vuetify: new Vuetify({theme: {dark: true}}),
+        data: () => ({
+            debtActions: []
+        }),
+        mounted() {
+            axios.get('/debts').then(response => this.debtActions = response.data);
+        },
+        methods: {
+            doneAction(index) {
+                axios.post('/debts', this.debtActions.splice(index, 1));
+            }
+        }
+    })
+</script>
 </body>
 </html>
