@@ -130,7 +130,7 @@ wss.on('connection', function connection(ws) {
         db.set('angle', startAngle % 360).write();
 
         db.get('debtActions').push({
-            action: actions[index],
+            action: actions[index] || "Придуманное желание",
             author: user || "albisha",
             date: new Date()
         }).write();

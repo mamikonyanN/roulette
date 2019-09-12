@@ -39,6 +39,11 @@
                                         </v-btn>
                                     </v-list-item-action>
                                 </v-list-item>
+                                <v-list-item v-if="debtActions.length === 0">
+                                    <v-list-item-content>
+                                        <v-list-item-title>Заданий пока нет...</v-list-item-title>
+                                    </v-list-item-content>
+                                </v-list-item>
                             </v-list-item-group>
                         </v-list>
                     </v-card>

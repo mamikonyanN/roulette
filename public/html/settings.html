@@ -72,6 +72,7 @@
                         >
                             {{wish}}
                         </v-chip>
+                        <span v-if="actions.length === 0">Заданий нет...</span>
                     </v-col>
                     <v-col cols="12" sm="4">
                         <v-text-field v-model="newWish" label="Новое задание"/>
@@ -88,18 +89,19 @@
                         <v-chip
                                 close
                                 v-for="(wish, index) in royalActions"
-                                @click:close="deleteWish(index)"
+                                @click:close="deleteRoyalWish(index)"
                                 :key="index"
                                 class="ma-1"
                         >
                             {{wish}}
                         </v-chip>
+                        <span v-if="royalActions.length === 0">Дорогих заданий нет...</span>
                     </v-col>
                     <v-col cols="12" sm="4">
                         <v-text-field v-model="newRoyalWish" label="Новое дорогое задание"/>
                     </v-col>
                     <v-col cols="12" sm="8">
-                        <v-btn tile outlined @click="addWish()">Добавить в список дорогих</v-btn>
+                        <v-btn tile outlined @click="addRoyalWish()">Добавить в список дорогих</v-btn>
                         <v-btn tile outlined @click="saveRoyalActions()">Сохранить список дорогих</v-btn>
                     </v-col>
                 </v-row>
@@ -147,6 +149,15 @@
                 if (!!this.newWish) {
                     this.actions.push(this.newWish);
                     this.newWish = "";
+                }
+            },
+            deleteRoyalWish(index) {
+                this.royalActions.splice(index, 1)
+            },
+            addRoyalWish() {
+                if (!!this.newRoyalWish) {
+                    this.royalActions.push(this.newRoyalWish);
+                    this.newRoyalWish = "";
                 }
             },
             saveData() {
