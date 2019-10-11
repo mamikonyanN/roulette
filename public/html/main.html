@@ -75,7 +75,6 @@
 <div class="message" id="message"></div>
 <img src="../media/back.jpeg" id="back" alt="" hidden>
 <script>
-    //style.opacity = "0.9";
     let message = document.getElementById("message");
     let roulette = document.getElementById("roulette");
     message.style.opacity = "0";
@@ -223,7 +222,6 @@
         ctx.restore();
         message.innerText = options[index];
         message.style.opacity = "1";
-        window.speechSynthesis.speak(new SpeechSynthesisUtterance(options[index]));
         isSpinning = false;
         if (spinRemained.length > 0) {
             setTimeout(() => {

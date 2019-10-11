@@ -21,7 +21,7 @@ app.get('/', (req, res) => res.sendFile(__dirname + '/public/html/main.html'));
 app.get('/settings', (req, res) => res.sendFile(__dirname + '/public/html/settings.html'));
 app.get('/wishList', (req, res) => res.sendFile(__dirname + '/public/html/wish_list.html'));
 
-app.get('/data', (req, res) => res.send({
+app.get('/get', (req, res) => res.send({
     token: db.get('token'),
     goal: db.get('goal'),
     actions: db.get('actions'),
@@ -29,17 +29,17 @@ app.get('/data', (req, res) => res.send({
     royalActions: db.get('royalActions'),
 }));
 
-app.get('/debts', (req, res) => res.send(db.get('debtActions')));
-app.post('/debts', (req, res) => db.get('debtActions').remove(req.body[0]).write());
-
-app.post('/saveActions', (req, res) => db.set('actions', req.body).write());
-app.post('/saveRoyalActions', (req, res) => db.set('royalActions', req.body).write());
-
-app.post('/saveData', (req, res) => {
+app.post('/save', (req, res) => {
     db.set('token', req.body.token).write();
     db.set('goal', req.body.goal).write();
     db.set('royalGoal', req.body.royalGoal).write();
+    db.set('actions', req.body.actions).write();
+    db.set('royalActions', req.body.royalActions).write();
+    res.send('Сохранено!')
 });
+
+app.get('/debts', (req, res) => res.send(db.get('debtActions')));
+app.post('/debts', (req, res) => db.get('debtActions').remove(req.body[0]).write());
 
 // DateBase
 const low = require('lowdb');

@@ -6,9 +6,8 @@
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="./media/icon.png">
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@3.x/css/materialdesignicons.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="../css/vuetify.min.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
 </head>
 <body>
@@ -17,108 +16,99 @@
         <v-app-bar app>
             <v-toolbar-title>Настройки</v-toolbar-title>
             <v-spacer></v-spacer>
-            <v-btn href="/settings" text>Настройки</v-btn>
-            <v-btn href="/wishList" text>Желания</v-btn>
+            <v-toolbar-items>
+                <v-btn tile>Настройки</v-btn>
+                <v-btn href="/wishList" text>Желания</v-btn>
+            </v-toolbar-items>
         </v-app-bar>
         <v-content>
             <v-container>
-                <span class="title">Токены и донаты</span>
-                <v-row>
-                    <v-col cols="12" sm="4">
-                        <v-text-field
-                                :append-icon="tokenShow ? 'visibility' : 'visibility_off'"
-                                :rules="[rules.required]"
-                                :type="tokenShow ? 'text' : 'password'"
-                                v-model="token"
-                                hint="Токен DonationAlerts"
-                                label="Токен"
-                                @click:append="tokenShow = !tokenShow"
-                        />
-                    </v-col>
-                    <v-col cols="12" sm="4">
-                        <v-text-field
-                                type="number"
-                                :rules="[rules.required]"
-                                v-model="goal"
-                                hint="Общий донатгол"
-                                label="Донатгол"
-                        />
-                    </v-col>
-                    <v-col cols="12" sm="4">
-                        <v-text-field
-                                type="number"
-                                :rules="[rules.required]"
-                                v-model="royalGoal"
-                                hint="Сумма доната для дорогих заданий"
-                                label="Дорогой донатгол"
-                        />
-                    </v-col>
-                </v-row>
-                <v-row>
-                    <v-col cols="12" class="text-right">
-                        <v-btn tile outlined @click="saveData()">Сохранить</v-btn>
-                    </v-col>
-                </v-row>
-                <v-divider></v-divider>
-                <span class="title">Задания</span>
-                <v-row>
-                    <v-col cols="12">
-                        <v-chip
-                                close
-                                v-for="(wish, index) in actions"
-                                @click:close="deleteWish(index)"
-                                :key="index"
-                                class="ma-1"
-                        >
-                            {{wish}}
-                        </v-chip>
-                        <span v-if="actions.length === 0">Заданий нет...</span>
-                    </v-col>
-                    <v-col cols="12" sm="4">
-                        <v-text-field v-model="newWish" label="Новое задание"/>
-                    </v-col>
-                    <v-col cols="12" sm="8">
-                        <v-btn tile outlined @click="addWish()">Добавить в список</v-btn>
-                        <v-btn tile outlined @click="saveActions()">Сохранить список</v-btn>
-                    </v-col>
-                </v-row>
-                <v-divider></v-divider>
-                <span class="title">Дорогие задания</span>
-                <v-row>
-                    <v-col cols="12">
-                        <v-chip
-                                close
-                                v-for="(wish, index) in royalActions"
-                                @click:close="deleteRoyalWish(index)"
-                                :key="index"
-                                class="ma-1"
-                        >
-                            {{wish}}
-                        </v-chip>
-                        <span v-if="royalActions.length === 0">Дорогих заданий нет...</span>
-                    </v-col>
-                    <v-col cols="12" sm="4">
-                        <v-text-field v-model="newRoyalWish" label="Новое дорогое задание"/>
-                    </v-col>
-                    <v-col cols="12" sm="8">
-                        <v-btn tile outlined @click="addRoyalWish()">Добавить в список дорогих</v-btn>
-                        <v-btn tile outlined @click="saveRoyalActions()">Сохранить список дорогих</v-btn>
-                    </v-col>
-                </v-row>
-                <v-snackbar v-model="snackbar" :timeout="1500" right color="success">Сохранено</v-snackbar>
+                <v-form v-model="settingsForm" ref="settingsForm">
+                    <v-row>
+                        <v-col cols="12" sm="4">
+                            <v-text-field
+                                    :append-icon="tokenShow ? 'mdi-eye' : 'mdi-eye-off'"
+                                    :rules="[rules.required]"
+                                    :type="tokenShow ? 'text' : 'password'"
+                                    v-model="token"
+                                    hint="Токен DonationAlerts"
+                                    label="Токен"
+                                    @click:append="tokenShow = !tokenShow"
+                            />
+                        </v-col>
+                        <v-col cols="12" sm="4">
+                            <v-text-field
+                                    type="number"
+                                    :rules="[rules.required]"
+                                    v-model="goal"
+                                    hint="Общий донатгол"
+                                    label="Донатгол"
+                            />
+                        </v-col>
+                        <v-col cols="12" sm="4">
+                            <v-text-field
+                                    type="number"
+                                    :rules="[rules.required]"
+                                    v-model="royalGoal"
+                                    hint="Сумма доната для дорогих заданий"
+                                    label="Дорогой донатгол"
+                            />
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col cols="12">
+                            <v-combobox
+                                    flat
+                                    :rules="[rules.wish]"
+                                    v-model="actions"
+                                    label="Задания"
+                                    append-icon
+                                    multiple
+                                    small-chips
+                                    deletable-chips
+                                    no-data-text="Заданий пока нет"
+                            />
+                        </v-col>
+                    </v-row>
+                    <v-row>
+                        <v-col cols="12">
+                            <v-combobox
+                                    flat
+                                    :rules="[rules.wish]"
+                                    v-model="royalActions"
+                                    label="Дорогие задания"
+                                    append-icon
+                                    multiple
+                                    small-chips
+                                    color="secondary"
+                                    deletable-chips
+                                    no-data-text="Дорогих заданий пока нет"
+                            />
+                        </v-col>
+                    </v-row>
+                    <v-divider></v-divider>
+                    <v-row>
+                        <v-col cols="12" class="text-right">
+                            <v-btn tile outlined @click.prevent="save()">Сохранить</v-btn>
+                        </v-col>
+                    </v-row>
+                </v-form>
+                <v-snackbar v-model="success" :timeout="1500" right color="success">Сохранено</v-snackbar>
+                <v-snackbar v-model="error" :timeout="2000" right color="error">Не сохранено</v-snackbar>
             </v-container>
         </v-content>
     </v-app>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+<script src="../js/axios.js"></script>
+<script src="../js/vue.js"></script>
+<script src="../js/vuetify.js"></script>
 <script>
     new Vue({
         el: '#app',
-        vuetify: new Vuetify({theme: {dark: true}}),
+        vuetify: new Vuetify({theme: {dark: true, themes: {dark: {secondary: '#ffd700'}}}}),
         data: () => ({
+            settingsForm: false,
             token: "",
             goal: 500,
             actions: [],
@@ -127,13 +117,15 @@
             royalActions: [],
 
             tokenShow: false,
-            snackbar: false,
-            newWish: "",
-            newRoyalWish: "",
-            rules: {required: value => !!value || 'Введи!!!'}
+            success: false,
+            error: false,
+            rules: {
+                required: value => !!value || 'Это поле обязательное!',
+                wish: value => !!value.length || 'Должно быть хотя бы одно желание!!'
+            }
         }),
         mounted() {
-            axios.get('/data').then(response => {
+            axios.get('/get').then(response => {
                 this.token = response.data.token;
                 this.goal = response.data.goal;
                 this.royalGoal = response.data.royalGoal;
@@ -142,35 +134,17 @@
             });
         },
         methods: {
-            deleteWish(index) {
-                this.actions.splice(index, 1)
-            },
-            addWish() {
-                if (!!this.newWish) {
-                    this.actions.push(this.newWish);
-                    this.newWish = "";
-                }
-            },
-            deleteRoyalWish(index) {
-                this.royalActions.splice(index, 1)
-            },
-            addRoyalWish() {
-                if (!!this.newRoyalWish) {
-                    this.royalActions.push(this.newRoyalWish);
-                    this.newRoyalWish = "";
-                }
-            },
-            saveData() {
-                axios.post("/saveData", {token: this.token, goal: this.goal, royalGoal: this.royalGoal});
-                this.snackbar = true
-            },
-            saveActions() {
-                axios.post("/saveActions", this.actions);
-                this.snackbar = true
-            },
-            saveRoyalActions() {
-                axios.post("/saveRoyalActions", this.royalActions);
-                this.snackbar = true
+            save() {
+                if (this.settingsForm) {
+                    let token = this.token;
+                    let goal = this.goal;
+                    let royalGoal = this.royalGoal;
+                    let actions = this.actions;
+                    let royalActions = this.royalActions;
+                    axios
+                        .post('/save', {token, goal, royalGoal, actions, royalActions})
+                        .then(() => this.success = true, () => this.error = true);
+                } else this.$refs.settingsForm.validate()
             }
         }
     })
