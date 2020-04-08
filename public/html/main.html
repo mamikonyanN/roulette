@@ -12,251 +12,103 @@
             box-sizing: border-box;
         }
 
-        .over {
-            position: absolute;
-            left: 250px;
-            top: 227px;
-            transform: translate(-50%, -50%);
+        html {
+            /*background: #0f0;*/
+            background: gray;
         }
 
-        .status {
+        :root {
+            --borderColor: white;
+        }
+
+        .exp {
+            --borderColor: gold;
+        }
+
+        .wheel {
+            width: 500px;
+            height: 500px;
+            background: url("../media/back.jpeg") center center no-repeat;
+            color: white;
+            border-radius: 50%;
+            border: 2px solid var(--borderColor);
             position: relative;
-            width: 500px;
-            height: 35px;
-            background: black;
-            margin-bottom: 20px;
         }
 
-        .status .bar {
-            position: absolute;
-            height: 35px;
-            width: 0;
-            transition: width 1s;
-            background: url("./media/bar.png") no-repeat center center;
-            background-size: cover;
-        }
-
-        .status .current {
-            color: white;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            font-family: "Monly Lite", serif;
-            font-weight: bold;
-            font-size: 30px;
-        }
-
-        .message {
-            margin-top: 20px;
-            width: 500px;
-            min-height: 50px;
-            background: black;
-            font-family: "Monly Lite", serif;
-            font-weight: bold;
-            font-size: 30px;
+        .task {
+            height: 50%;
             text-align: center;
-            vertical-align: middle;
-            color: white;
-            border: 10px solid;
-            border-image: url("./media/bar.png") 10 round round;
+            transform-origin: 00% 100%;
+            border-left: 1px solid;
+            border-right: 1px solid;
+            border-color: var(--borderColor);
+            position: absolute;
+            clip-path: polygon(100% 0, 0 0, 50% 100%);
+            left: 50%;
+            top: 0;
+            padding-top: 1rem;
         }
+
+        .task:before {
+            z-index: 1;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            content: " ";
+            background: var(--borderColor);
+        }
+
     </style>
 </head>
-<body style="background: #00ff00">
-<div class="status">
-    <div class="bar"></div>
-    <span class="current" id="current"></span>
+<body>
+<div class="wheel">
 </div>
-<div id="roulette" style="position: relative">
-    <canvas id="canvas" width="500" height="500"></canvas>
-    <img src="../media/raptor.png" width="210" class="over" alt="">
-</div>
-<div class="message" id="message"></div>
-<img src="../media/back.jpeg" id="back" alt="" hidden>
+
+<button>rotate</button>
+<script src="../js/anime.min.js"></script>
 <script>
-    let message = document.getElementById("message");
-    let roulette = document.getElementById("roulette");
-    message.style.opacity = "0";
-    roulette.style.opacity = "0";
-    let options = ["default"];
-    let socket = new WebSocket(`ws://localhost:${parseInt(location.port) + 1}`);
-    socket.onopen = function () {
-        console.log("Соединение установлено.");
-        socket.send("init");
-    };
-    socket.onclose = event => console.log('Код: ' + event.code + '\nпричина: ' + event.reason);
-    socket.onerror = error => console.log("Ошибка " + error.message);
+    let prev = 0, next = 0;
 
-    socket.onmessage = function (event) {
-        let data = JSON.parse(event.data);
+    const wishes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const wheel = document.querySelector('.wheel');
 
-        if (!!data.current) document.getElementById("current").innerText = data.current;
+    wheel.innerHTML = '';
 
-        if (!!data.goal && !!data.current)
-            document.getElementsByClassName("bar")[0].style.width = data.current * 100 / data.goal + "%";
+    const radius = 250;
 
-        if (!!data.spin) {
-            let w = !!data.actions && !!data.actions.length > 0 ? data.actions : ["Придумай желание сам!"];
-            let r = !!data.royal;
-            let s = data.angle || 0;
-            let sa = data.spinAngle || 0;
-            let st = data.spinTime || 15000;
-            spin([w, r, s, sa, st]);
-        }
-    };
+    const angle = 360 / wishes.length;
+    const width = 2 * radius * Math.sin((angle / 2) * (Math.PI / 180));
+    const height = Math.sqrt((radius ** 2) - ((width / 2) ** 2));
 
-    let spinRemained = [];
+    document.querySelector('button').onclick = function () {
+        document.body.className = anime.random(0, 1) ? '' : 'exp';
 
-    let royalSpin = false;
+        wheel.innerHTML = '';
 
-    let startAngle = 0;
-    let spinTimeout = null;
+        wishes.forEach(function (_, index) {
+            let div = document.createElement("div");
+            div.classList.add('task');
+            div.style.top = `${radius - height - 2}px`;
+            div.style.width = `${width}px`;
+            div.style.height = `${height}px`;
+            div.style.transform = `rotate(${(360 / wishes.length) * index}deg) translateX(-50%)`;
+            div.innerHTML = (index + 1).toString();
+            wheel.appendChild(div);
+        });
 
-    let spinAngleStart = 10;
-    let spinTime = 0;
-    let spinTimeTotal = 0;
-
-    let outsideRadius = 247;
-    let textRadius = 170;
-    let insideRadius = 100;
-    let isSpinning = false;
-    let ctx, arc;
-
-    function drawRouletteWheel() {
-        roulette.style.opacity = "1";
-        arc = Math.PI / (options.length / 2);
-        const img = document.getElementById("back");
-        let canvas = document.getElementById("canvas");
-        if (canvas.getContext) {
-            ctx = canvas.getContext("2d");
-            ctx.clearRect(0, 0, 500, 500);
-
-            ctx.strokeStyle = royalSpin ? "gold" : "white";
-            ctx.lineWidth = 3;
-            ctx.font = 'bold 30px Monly Lite, Arial';
-
-            let tempCanvas = document.createElement("canvas"), tCtx = tempCanvas.getContext("2d");
-            tempCanvas.width = 500;
-            tempCanvas.height = 500;
-            tCtx.translate(250, 250);
-            tCtx.rotate(startAngle + arc / 2 + Math.PI / 2);
-            tCtx.drawImage(img, -250, -250, 500, 500);
-            tCtx.rotate(-(startAngle + arc / 2 + Math.PI / 2));
-            tCtx.translate(-250, -250);
-
-            for (let i = 0; i < options.length; i++) {
-                let angle = startAngle + i * arc;
-
-                ctx.fillStyle = ctx.createPattern(tempCanvas, 'no-repeat');
-                ctx.strokeStyle = royalSpin ? "gold" : "white";
-                ctx.beginPath();
-                ctx.arc(250, 250, outsideRadius, angle, angle + arc, false);
-                ctx.arc(250, 250, insideRadius, angle + arc, angle, true);
-                ctx.fill();
-                ctx.stroke();
-                ctx.save();
-
-                ctx.fillStyle = royalSpin ? "gold" : "white";
-                ctx.shadowOffsetX = 2;
-                ctx.shadowOffsetY = 2;
-                ctx.shadowBlur = 3;
-                ctx.shadowColor = "black";
-                ctx.translate(250 + Math.cos(angle + arc / 2) * textRadius,
-                    250 + Math.sin(angle + arc / 2) * textRadius);
-                ctx.rotate(angle + arc / 2 + Math.PI / 2);
-                let text = i + 1;
-                ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
-                ctx.restore();
+        next = (anime.random(0, 360)) + (anime.random(4, 9) * 360);
+        anime({
+            targets: '.wheel',
+            rotate: {
+                value: [prev, next],
+                duration: 5000,
+                easing: 'cubicBezier(.3, 0, .5, 1)'
             }
+        }).restart();
+        prev = next % 360;
 
-            //Arrow
-            ctx.fillStyle = royalSpin ? "gold" : "white";
-            ctx.beginPath();
-            ctx.moveTo(250 - 4, 250 - (outsideRadius + 5));
-            ctx.lineTo(250 + 4, 250 - (outsideRadius + 5));
-            ctx.lineTo(250 + 4, 250 - (outsideRadius - 5));
-            ctx.lineTo(250 + 9, 250 - (outsideRadius - 5));
-            ctx.lineTo(250 + 0, 250 - (outsideRadius - 13));
-            ctx.lineTo(250 - 9, 250 - (outsideRadius - 5));
-            ctx.lineTo(250 - 4, 250 - (outsideRadius - 5));
-            ctx.lineTo(250 - 4, 250 - (outsideRadius + 5));
-            ctx.fill();
-        }
-    }
-
-    function spin([w, r, s, sa, st]) {
-        if (isSpinning) {
-            spinRemained.push([w, r, s, sa, st]);
-            return;
-        }
-        startAngle = s;
-        spinAngleStart = sa;
-        spinTimeTotal = st;
-        royalSpin = r;
-        options = w;
-
-        isSpinning = true;
-        spinTime = 0;
-        rotateWheel();
-    }
-
-    function rotateWheel() {
-        spinTime += 50;
-        if (spinTime >= spinTimeTotal) {
-            stopRotateWheel();
-            return;
-        }
-        let spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
-        startAngle += (spinAngle * Math.PI / 180);
-        drawRouletteWheel();
-        spinTimeout = setTimeout(() => rotateWheel(), 0);
-    }
-
-    function stopRotateWheel() {
-        clearTimeout(spinTimeout);
-        let degrees = startAngle * 180 / Math.PI + 90;
-        let arcD = arc * 180 / Math.PI;
-        let index = Math.floor((360 - degrees % 360) / arcD);
-        ctx.save();
-        ctx.restore();
-        message.innerText = options[index];
-        message.style.opacity = "1";
-        isSpinning = false;
-        if (spinRemained.length > 0) {
-            setTimeout(() => {
-                spin(spinRemained.shift());
-
-                let value = 1;
-                let diff = 1 / (500 / 20);
-                let dissolve = setInterval(() => {
-                    message.style.opacity = value.toString();
-                    value -= diff.toString();
-                }, 20);
-                setTimeout(() => clearInterval(dissolve), 500);
-            }, 3000);
-        }
-        setTimeout(() => {
-            let value = 1;
-            let diff = 1 / (500 / 20);
-            let dissolve = setInterval(() => {
-                value -= diff.toString();
-                roulette.style.opacity = value.toString();
-                message.style.opacity = value.toString();
-            }, 20);
-            setTimeout(() => {
-                message.innerText = "";
-                clearInterval(dissolve);
-            }, 500);
-        }, 3000);
-    }
-
-    function easeOut(t, b, c, d) {
-        let ts = (t /= d) * t;
-        let tc = ts * t;
-        return b + c * (tc + -3 * ts + 3 * t);
-    }
-
+    };
 </script>
 </body>
 </html>
