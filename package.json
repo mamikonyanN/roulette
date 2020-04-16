@@ -1,16 +1,16 @@
 {
   "scripts": {
-    "app": "node main.js"
+    "app": "node app.js"
   },
   "license": "ISC",
   "dependencies": {
-    "body-parser": "latest",
-    "express": "latest",
-    "lowdb": "latest",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "lowdb": "^1.0.0",
     "opn": "^6.0.0",
-    "socket.io": "latest",
-    "socket.io-client": "latest",
+    "socket.io": "^2.3.0",
+    "socket.io-client": "^2.3.0",
     "systray": "^1.0.5",
-    "ws": "latest"
+    "ws": "^7.2.3"
   }
 }
