@@ -9,6 +9,9 @@ database.defaults({
     royalActions: [],
     royalGoal: 0,
 
+    rotateDuration: 5000,
+    pause: 2000,
+
     actions: [],
     goal: 0,
 

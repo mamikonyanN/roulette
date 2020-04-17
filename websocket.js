@@ -1,82 +1,92 @@
-module.exports = function (database) {
+module.exports = function(database) {
+  const WebSocket = require('ws')
+  const port = (process.env.PORT || 3000) + 1
+  const wss = new WebSocket.Server({ port })
+  const io = require('socket.io-client')
 
-    const WebSocket = require('ws');
-    const port = (process.env.PORT || 3000) + 1;
-    const wss = new WebSocket.Server({port});
-    const io = require('socket.io-client');
+  wss.on('connection', function(ws) {
+    const socket = io('wss://websocket.donationalerts.ru:443')
+    socket.emit('add-user', { token: database.get('token'), type: 'minor' })
+    socket.on('donation', donation)
 
-    wss.on('connection', function connection(ws) {
+    ws.on('message', function incoming(message) {
+      try {
+        const parsed = JSON.parse(message)
+        if (parsed.amount_main) donation(message)
+      } catch (e) {
+      }
 
-        //Donation alerts websocket connection
-        let socket = io("wss://websocket.donationalerts.ru:443");
-        socket.emit('add-user', {token: database.get('token'), type: "minor"});
-        socket.on('donation', function (msg) {
-            msg = JSON.parse(msg);
+      if (message === 'init') donation()
+      if (message === 'spin') spinRoulette(false)
+      if (message === 'royalSpin') spinRoulette(true)
+    })
 
-            let current = +database.get('current');
-            let goal = +database.get('goal');
-            let royalGoal = +database.get('royalGoal');
+    function donation(msg) {
+      try {
+        msg = JSON.parse(msg)
+      } catch (e) {
+        msg = { amount_main: 0, username: 'albisha' }
+      }
 
-            let royal = +msg.amount_main >= royalGoal;
+      let current = Number(database.get('current'))
+      const goal = Number(database.get('goal'))
+      const royalGoal = Number(database.get('royalGoal'))
 
-            if (!royal) database.set('current', (current + msg.amount_main) % goal).write();
-            ws.send(JSON.stringify({goal: database.get('goal'), current: database.get('current')}));
+      const donateAmount = Number(msg.amount_main)
+      const donateUser = msg.username
 
-            if (royal)
-                spinRoulette(true, msg.username);
-            else if (current + msg.amount_main >= goal)
-                spinRoulette(false, msg.username);
-        });
+      const royal = donateAmount >= royalGoal
+      const sum = donateAmount + current
+      const isWin = sum >= goal
 
-        ws.on('message', function incoming(message) {
-            if (message === "init")
-                ws.send(JSON.stringify({
-                    goal: database.get('goal'),
-                    current: database.get('current')
-                }));
-            if (message === "spin") spinRoulette(false, "albisha");
-            if (message === "royalSpin") spinRoulette(true, "albisha");
-        });
+      current = sum % goal
 
-        function spinRoulette(royal, user) {
-            let startAngle = JSON.parse(JSON.stringify(database.get('angle')));
-            let spinTimeTotal = Math.random() * 50 + 50 * 1000;
-            let spinAngleStart = Math.random() * 10 + 20;
-            let time = 0;
-            while (time < spinTimeTotal) {
-                time += 50;
-                let spinAngle = spinAngleStart - easeOut(time, 0, spinAngleStart, spinTimeTotal);
-                startAngle += (spinAngle * Math.PI / 180);
-            }
-            let actions = JSON.parse(JSON.stringify(database.get(royal ? "royalActions" : "actions")));
-            let arc = Math.PI / (actions.length / 2);
-            let degrees = startAngle * 180 / Math.PI + 90;
-            let arcd = arc * 180 / Math.PI;
-            let index = Math.floor((360 - degrees % 360) / arcd);
+      if (!royal) {
+        database.set('current', current).write()
+        ws.send(JSON.stringify({ status: { goal, current, isWin } }))
+      }
 
-            ws.send(JSON.stringify({
-                spin: true,
-                user: user,
-                spinAngle: spinAngleStart,
-                spinTime: spinTimeTotal,
-                angle: database.get('angle'),
-                actions: actions,
-                royal: royal
-            }));
+      if (royal)
+        spinRoulette(true, donateUser)
+      else if (isWin)
+        spinRoulette(false, donateUser)
+    }
 
-            database.set('angle', startAngle % 360).write();
+    function spinRoulette(royal, user) {
+      let startAngle = JSON.parse(JSON.stringify(database.get('angle')))
+      let actions = JSON.parse(JSON.stringify(database.get(royal ? 'royalActions' : 'actions')))
+      let rotateDuration = JSON.parse(JSON.stringify(database.get('rotateDuration')))
+      let pause = JSON.parse(JSON.stringify(database.get('pause')))
 
-            database.get('debtActions').push({
-                action: actions[index] || "Придуманное желание",
-                author: user || "albisha",
-                date: new Date()
-            }).write();
+      let actionsLength = actions.length
+      let index = Math.round(randomInt(0, actionsLength - 1))
+
+      const angle = 360 / actions.length
+      let endAngle = (randomInt(5, 10) * 360) - randomInt((angle * index) - (angle / 2), (angle * index) + (angle / 2) - 1)
+
+      ws.send(JSON.stringify({
+        roulette: {
+          startAngle,
+          endAngle,
+          rotateDuration,
+          pause,
+          actionsLength,
+          royal
         }
+      }))
 
-        function easeOut(t, b, c, d) {
-            let ts = (t /= d) * t;
-            let tc = ts * t;
-            return b + c * (tc + -3 * ts + 3 * t);
-        }
-    });
-};
+      database.set('angle', endAngle % 360).write()
+
+      database.get('debtActions').push({
+        action: actions[index] || 'Придуманное желание',
+        author: user || 'albisha',
+        date: new Date()
+      }).write()
+    }
+  })
+}
+
+function randomInt(min, max) {
+  let rand = min + Math.random() * (max + 1 - min)
+  return Math.floor(rand)
+}

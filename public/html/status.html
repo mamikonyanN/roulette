@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+
+    <title>Roulette</title>
+    <link rel="shortcut icon" href="./media/icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            background: #0f0;
+        }
+
+        .status {
+            position: relative;
+            background: black;
+        }
+
+        .status .bar {
+            position: absolute;
+            height: 100%;
+            width: 0;
+            background: url("./media/bar.png") no-repeat center center;
+            background-size: cover;
+        }
+
+        .status .current {
+            color: white;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-family: "Monly Lite", serif;
+            /*font-size: 5vmax;*/
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="status">
+    <div class="bar"></div>
+    <span class="current"></span>
+</div>
+
+<script src="../js/anime.min.js"></script>
+
+<script>
+  const socket = new WebSocket(`ws://localhost:${parseInt(location.port) + 1}`)
+  socket.onopen = () => {
+    console.log('Connected')
+    socket.send('init')
+  }
+  socket.onclose = event => console.log('Disconnected', event)
+  socket.onmessage = function(event) {
+    const data = JSON.parse(event.data).status
+    console.log(data)
+    if (data)
+      startChain(data)
+  }
+
+  function test(amount_main) {
+    socket.send(JSON.stringify({ amount_main }))
+  }
+
+  window.addEventListener('resize', calculateSize)
+  calculateSize()
+
+  function calculateSize() {
+    anime.set('.status', { height: window.innerHeight, width: window.innerWidth, fontSize: window.innerHeight * .5 })
+  }
+
+  function startChain(data) {
+    if (data.isWin) {
+      anime({
+        targets: '.current',
+        keyframes: [
+          { innerHTML: data.goal, duration: 800, endDelay: 700 },
+          { innerHTML: 0, duration: 500 }
+        ],
+        round: 100,
+        easing: 'easeInOutQuad'
+      })
+      anime({
+        targets: '.bar',
+        keyframes: [
+          { width: '100%', duration: 1500 },
+          { opacity: 0, duration: 500 },
+          { width: 0, duration: 0 },
+          { opacity: 1, duration: 0 }
+        ],
+        easing: 'easeInOutQuad'
+      }).finished.then(() => updateValue(data))
+    } else updateValue(data)
+  }
+
+  function updateValue(data) {
+    anime({
+      targets: '.bar',
+      width: (data.current / data.goal) * 100 + '%',
+      easing: 'easeInOutQuad'
+    })
+    anime({
+      targets: '.current',
+      innerHTML: data.current,
+      round: 100,
+      easing: 'easeInOutQuad'
+    })
+  }
+
+</script>
+</body>
+</html>
