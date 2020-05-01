@@ -1,72 +1,68 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-
-    <title>Roulette</title>
-    <link rel="shortcut icon" href="./media/icon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            background: #0f0;
-        }
-
-        .status {
-            position: relative;
-            background: black;
-        }
-
-        .status .bar {
-            position: absolute;
-            height: 100%;
-            width: 0;
-            background: url("./media/bar.png") no-repeat center center;
-            background-size: cover;
-        }
-
-        .status .current {
-            color: white;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            font-family: "Monly Lite", serif;
-            /*font-size: 5vmax;*/
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8">
+  
+  <title>Status</title>
+  <link rel="shortcut icon" href="../media/icon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      background: #0f0;
+    }
+    
+    .status {
+      position: relative;
+      background: black;
+    }
+    
+    .status .bar {
+      position: absolute;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #fe0178, #02d0fc);
+    }
+    
+    .status .current {
+      color: white;
+      text-shadow: 1px 1px 2px black;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-family: "Monly Lite", serif;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
 
 <div class="status">
-    <div class="bar"></div>
-    <span class="current"></span>
+  <div class="bar"></div>
+  <span class="current"></span>
 </div>
 
 <script src="../js/anime.min.js"></script>
 
 <script>
-  const socket = new WebSocket(`ws://localhost:${parseInt(location.port) + 1}`)
-  socket.onopen = () => {
-    console.log('Connected')
-    socket.send('init')
-  }
-  socket.onclose = event => console.log('Disconnected', event)
-  socket.onmessage = function(event) {
-    const data = JSON.parse(event.data).status
-    console.log(data)
-    if (data)
-      startChain(data)
-  }
 
-  function test(amount_main) {
-    socket.send(JSON.stringify({ amount_main }))
+  fetch('/getStatus').then(res => res.json()).then(startChain)
+
+  let eventSource = new EventSource('/statusEvent')
+
+  eventSource.onmessage = function(event) {
+    try {
+      const data = JSON.parse(event.data)
+      startChain(data)
+    } catch (e) {
+
+    }
   }
 
   window.addEventListener('resize', calculateSize)

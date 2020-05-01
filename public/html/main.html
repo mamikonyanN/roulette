@@ -1,126 +1,117 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-
-    <title>Roulette</title>
-    <link rel="shortcut icon" href="./media/icon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            background: #0f0;
-        }
-
-        :root {
-            font-size: 5vmin;
-            font-family: 'Roboto', serif;
-            --borderColor: white;
-        }
-
-        .exp {
-            --borderColor: gold;
-        }
-
-        .wrapper {
-            position: relative;
-            width: 500px;
-            height: 500px;
-        }
-
-        .wheel {
-            width: 100%;
-            height: 100%;
-            background: url("../media/back.jpeg") center center no-repeat;
-            color: white;
-            border-radius: 50%;
-            border: 2px solid var(--borderColor);
-            position: relative;
-        }
-
-        .task {
-            text-align: center;
-            transform-origin: 0 100%;
-            position: absolute;
-            left: 50%;
-            top: 0;
-        }
-
-        .task p {
-            position: absolute;
-            left: 50%;
-            top: 100%;
-            transform: translate(-50%, -100%);
-            text-shadow: 1px 1px 2px black;
-        }
-
-        .task svg {
-            position: absolute;
-            bottom: 0;
-            top: 0;
-            left: 0;
-            right: 0;
-            stroke: var(--borderColor);
-            stroke-width: 1px;
-            fill: none;
-        }
-
-        .dino {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            background: url("./media/raptor.png") no-repeat center center;
-            background-size: contain;
-            width: 50%;
-            height: 50%;
-            margin-top: -5%;
-        }
-
-        .pointer {
-            position: absolute;
-            left: 50%;
-            top: 0;
-            transform: translateX(-50%);
-            width: 5%;
-            height: 5%;
-            fill: white;
-        }
-
-    </style>
+  <meta charset="UTF-8">
+  
+  <title>Roulette</title>
+  <link rel="shortcut icon" href="../media/icon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      background: #0f0;
+    }
+    
+    :root {
+      font-size: 5vmin;
+      font-family: 'Roboto', serif;
+      --borderColor: white;
+    }
+    
+    .exp {
+      --borderColor: gold;
+    }
+    
+    .wrapper {
+      position: relative;
+      width: 500px;
+      height: 500px;
+    }
+    
+    .wheel {
+      width: 100%;
+      height: 100%;
+      background: url("../media/back.jpeg") center center no-repeat;
+      color: white;
+      border-radius: 50%;
+      border: 2px solid var(--borderColor);
+      position: relative;
+    }
+    
+    .task {
+      text-align: center;
+      transform-origin: 0 100%;
+      position: absolute;
+      left: 50%;
+      top: 0;
+    }
+    
+    .task p {
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      transform: translate(-50%, -100%);
+      text-shadow: 1px 1px 2px black;
+    }
+    
+    .task svg {
+      position: absolute;
+      bottom: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      stroke: var(--borderColor);
+      stroke-width: 1px;
+      fill: none;
+    }
+    
+    .dino {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: url("../media/raptor.png") no-repeat center center;
+      background-size: contain;
+      width: 50%;
+      height: 50%;
+      margin-top: -5%;
+    }
+    
+    .pointer {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+      width: 5%;
+      height: 5%;
+      fill: white;
+    }
+  
+  </style>
 </head>
 <body>
 <div class="wrapper">
-    <div class="wheel"></div>
-    <div class="dino"></div>
-    <svg class="pointer" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-        <path d="M20,0 L50,100 80,0 50,20 "/>
-    </svg>
+  <div class="wheel"></div>
+  <div class="dino"></div>
+  <svg class="pointer" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <path d="M20,0 L50,100 80,0 50,20 "/>
+  </svg>
 </div>
 
 <script src="../js/anime.min.js"></script>
 
 <script>
-  const socket = new WebSocket(`ws://localhost:${parseInt(location.port) + 1}`)
-  socket.onopen = () => console.log('Connected')
-  socket.onclose = event => console.log('Disconnected', event)
-  socket.onmessage = function(event) {
-    const data = JSON.parse(event.data).roulette
-    if (data)
+  let eventSource = new EventSource('/rouletteEvent')
+  eventSource.onmessage = function(event) {
+    try {
+      const data = JSON.parse(event.data)
       rotate(data)
-  }
-
-  function test() {
-    socket.send('spin')
-  }
-
-  function test2() {
-    socket.send('royalSpin')
+    } catch (e) {}
   }
 
   const animationQueue = []
@@ -135,6 +126,14 @@
   }
 
   anime.set('.wrapper', { opacity: 0 })
+
+  function test(amount_main = 500) {
+    fetch('/testDonate', {
+      method: 'POST',
+      body: JSON.stringify({ amount_main }),
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
 
   function rotate(data) {
     animationQueue.push(data)
@@ -151,7 +150,21 @@
       duration: data.rotateDuration,
       endDelay: data.pause,
       easing: 'cubicBezier(.3, 0, .5, 1)',
-      begin: () => printActions(data)
+      begin: () => {
+        printActions(data)
+        fetch('/showMessage', {
+          method: 'POST',
+          body: JSON.stringify({
+            action: data.action,
+            author: data.author,
+            rotateDuration: data.rotateDuration,
+            pause: data.pause
+          }),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+      }
     }).finished.then(function() {
       if (animationQueue.length) spin(animationQueue.shift())
       else disappear()

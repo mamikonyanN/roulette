@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  
+  <title>Message</title>
+  <link rel="shortcut icon" href="../media/icon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      background: #0f0;
+    }
+    
+    .message {
+      width: 500px;
+      min-height: 50px;
+      background: black;
+      font-family: "Monly Lite", serif;
+      font-weight: bold;
+      font-size: 50px;
+      text-align: center;
+      vertical-align: middle;
+      color: white;
+      border: 10px solid;
+      border-image: linear-gradient(90deg, #fe0178, #02d0fc) 10;
+    }
+  </style>
+</head>
+<body>
+
+<div class="message"></div>
+
+<script src="../js/anime.min.js"></script>
+<script>
+  let eventSource = new EventSource('/messageEvent')
+
+  eventSource.onmessage = function(event) {
+    try {
+      const data = JSON.parse(event.data)
+      showMessage(data)
+    } catch (e) {
+
+    }
+  }
+
+  window.addEventListener('resize', calculateSize)
+  calculateSize()
+
+  function calculateSize() {
+    anime.set('.message', { width: window.innerWidth })
+  }
+
+  anime.set('.message', { opacity: 0 })
+
+  function showMessage(data) {
+    anime.set('.message', { innerHTML: data.action })
+    anime({
+      targets: '.message',
+      delay: data.rotateDuration,
+      keyframes: [
+        { opacity: 1, duration: 400, endDelay: data.pause - 800 },
+        { opacity: 0, duration: 400 }
+      ],
+      easing: 'easeInOutQuad'
+    })
+  }
+</script>
+</body>
+</html>
